@@ -1,0 +1,43 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum Plan { FREE PRO TEAM ENTERPRISE }
+enum UsageEventType { GENERATE EXPORT_PDF EXPORT_PPTX TRANSLATE API_CALL }
+
+model User {
+  id String @id @default(cuid())
+  email String @unique @default("user@example.com")
+  plan Plan @default(FREE)
+  creditsBalance Int @default(100)
+  stripeCustomerId String?
+  usageEvents UsageEvent[]
+  apiKeys ApiKey[]
+  auditEvents AuditEvent[]
+}
+
+model UsageEvent {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId], references:[id])
+  type UsageEventType
+  units Int
+  createdAt DateTime @default(now())
+}
+
+model ApiKey {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId], references:[id])
+  name String
+  hash String @unique
+  last4 String
+  createdAt DateTime @default(now())
+}
+
+model AuditEvent {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId], references:[id])
+  action String
+  createdAt DateTime @default(now())
+}
